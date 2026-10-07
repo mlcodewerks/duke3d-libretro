@@ -1,0 +1,23 @@
+# Shared source manifest for the libretro GNU Make build.
+SOURCES_C := \
+ libretro/core.c libretro/platform.c libretro/audio.c libretro/midi.c \
+ libretro/context.c libretro/io.c \
+ Engine/src/cache.c Engine/src/draw.c Engine/src/engine.c \
+ Engine/src/filesystem.c Engine/src/fixedPoint_math.c Engine/src/network.c \
+ Engine/src/tiles.c Engine/src/dummy_multi.c \
+ Game/src/actors.c Game/src/animlib.c Game/src/config.c Game/src/console.c \
+ Game/src/control.c Game/src/cvar_defs.c Game/src/cvars.c \
+ Game/src/dummy_audiolib.c Game/src/game.c Game/src/gamedef.c Game/src/global.c \
+ Game/src/keyboard.c Game/src/menues.c Game/src/player.c Game/src/premap.c \
+ Game/src/rts.c Game/src/scriplib.c Game/src/sector.c Game/src/sounds.c \
+ Game/src/audiolib/fx_man.c Game/src/audiolib/ll_man.c \
+ Game/src/audiolib/multivoc.c Game/src/audiolib/mv_mix.c \
+ Game/src/audiolib/mvreverb.c Game/src/audiolib/nodpmi.c \
+ Game/src/audiolib/pitch.c Game/src/audiolib/user.c
+
+CORE_DEFINES := -DLIBRETRO -DPLATFORM_UNIX -DUSER_DUMMY_NETWORK -DUSE_SDL=0
+CORE_INCLUDES := -Ilibretro -IEngine/src -IGame/src
+# Preserve the 32-bit fixed-point engine's wraparound and common globals.
+CORE_CFLAGS := -std=gnu99 -fcommon -fno-strict-aliasing -fwrapv \
+ -fvisibility=hidden -Wno-pointer-sign -Wno-error=int-conversion \
+ -Wno-error=incompatible-pointer-types -Wno-error=implicit-function-declaration

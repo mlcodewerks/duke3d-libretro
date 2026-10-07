@@ -1,0 +1,53 @@
+name: libretro
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --parallel 2
+      - run: ctest --test-dir build --output-on-failure
+      - run: make platform=unix -j2
+      - run: make platform=unix check
+  arm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: rpi2
+            prefix: arm-linux-gnueabihf-
+            packages: gcc-arm-linux-gnueabihf qemu-user
+            runner: qemu-arm -L /usr/arm-linux-gnueabihf
+          - platform: rpi4_64
+            prefix: aarch64-linux-gnu-
+            packages: gcc-aarch64-linux-gnu qemu-user
+            runner: qemu-aarch64 -L /usr/aarch64-linux-gnu
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+      - run: make platform=${{ matrix.platform }} CROSS_COMPILE=${{ matrix.prefix }} -j2
+      - run: make platform=${{ matrix.platform }} CROSS_COMPILE=${{ matrix.prefix }} RUNNER="${{ matrix.runner }}" check
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: make platform=osx -j2
+      - run: make platform=osx check
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make
+      - run: cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --parallel 2
+      - run: ctest --test-dir build --output-on-failure
+      - run: make platform=windows -j2
+      - run: make platform=windows check
